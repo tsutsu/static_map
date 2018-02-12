@@ -8,6 +8,8 @@ defmodule MapsAsFunctions.MixProject do
     start_permanent: Mix.env() == :prod,
     deps: deps(),
 
+    description: description(),
+    package: package(),
     name: "MapsAsFunctions",
     source_url: "https://github.com/tsutsu/maps_as_functions",
     docs: [
@@ -22,5 +24,17 @@ defmodule MapsAsFunctions.MixProject do
 
   defp deps, do: [
     {:ex_doc, "~> 0.16", only: :dev, runtime: false}
+  ]
+
+  defp description, do: """
+  A macro to create compile-time-expanded maps.
+  """
+
+  defp package, do: [
+    # These are the default files included in the package
+    files: ["lib", "mix.exs", "README*", "LICENSE*"],
+    maintainers: ["Levi Aul"],
+    licenses: ["MIT"],
+    links: %{"GitHub" => "https://github.com/tsutsu/maps_as_functions"}
   ]
 end
