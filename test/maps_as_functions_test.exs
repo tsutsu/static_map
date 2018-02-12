@@ -3,7 +3,7 @@ defmodule MapsAsFunctionsTest do
 
   defmodule Foo do
     use MapsAsFunctions
-    defmap :bar, [a: 1, b: 2]
+    defmap :bar, %{a: 1, b: 2}
   end
 
   doctest MapsAsFunctions
