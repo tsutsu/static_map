@@ -4,7 +4,7 @@ A compile-time macro to build fast mapper and predicate functions from a map.
 
 ## Usage
 
-Define a map in your module using the macro `defmap/2`:
+Define a map in your module using the macro `MapsAsFunctions.defmap/2`:
 
 ```elixir
 use MapsAsFunctions
@@ -15,7 +15,7 @@ defmap :bar, [
 ]
 ```
 
-`defmap/2` will define, given a map `:bar`, a module-attribute `@bar`, which you can use as normal in further function definitions:
+`MapsAsFunctions.defmap/2` will define, given a map `:bar`, a module-attribute `@bar`, which you can use as normal in further function definitions:
 
 ```elixir
 def bar_values do
@@ -23,7 +23,7 @@ def bar_values do
 end
 ```
 
-`defmap/2` will also define, given a map `:bar`, the public functions `bar/0`, `bar/1`, and `bar?/1`:
+`MapsAsFunctions.defmap/2` will also define, given a map `:bar`, the public functions `bar/0`, `bar/1`, and `bar?/1`:
 
 ```elixir
 iex> Foo.bar
@@ -63,8 +63,7 @@ None of the above functions have any runtime logic; they are all expanded into a
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `maps_as_functions` to your list of dependencies in `mix.exs`:
+Add `maps_as_functions` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
@@ -74,7 +73,5 @@ def deps do
 end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/maps_as_functions](https://hexdocs.pm/maps_as_functions).
+Docs can be found at [https://hexdocs.pm/maps_as_functions](https://hexdocs.pm/maps_as_functions).
 

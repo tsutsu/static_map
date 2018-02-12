@@ -1,9 +1,11 @@
 defmodule MapsAsFunctions.MixProject do
   use Mix.Project
 
+  @version "0.1.0"
+
   def project, do: [
     app: :maps_as_functions,
-    version: "0.1.0",
+    version: @version,
     elixir: "~> 1.6",
     start_permanent: Mix.env() == :prod,
     deps: deps(),
@@ -12,10 +14,7 @@ defmodule MapsAsFunctions.MixProject do
     package: package(),
     name: "MapsAsFunctions",
     source_url: "https://github.com/tsutsu/maps_as_functions",
-    docs: [
-      main: "MapsAsFunctions",
-      extras: ["README.md"]
-    ]
+    docs: docs()
   ]
 
   def application, do: [
@@ -36,5 +35,15 @@ defmodule MapsAsFunctions.MixProject do
     maintainers: ["Levi Aul"],
     licenses: ["MIT"],
     links: %{"GitHub" => "https://github.com/tsutsu/maps_as_functions"}
+  ]
+
+  defp docs, do: [
+    source_ref: "v#\{@version\}",
+    canonical: "https://hexdocs.pm/maps_as_functions",
+    main: "readme",
+    extras: ["README.md"],
+    groups_for_extras: [
+      "Readme": Path.wildcard("*.md")
+    ]
   ]
 end
