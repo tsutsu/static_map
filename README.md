@@ -9,7 +9,7 @@ Add `static_map` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:static_map, "~> 0.1.0"}
+    {:static_map, "~> 0.1.1"}
   ]
 end
 ```

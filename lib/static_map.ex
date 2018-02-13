@@ -40,7 +40,12 @@ defmodule StaticMap do
     {map_module, []} = Code.eval_quoted(map_module_alias, [], env)
     {k, []} = Code.eval_quoted(quoted_k, [], env)
     v = :erlang.apply(map_module, function_name, [k])
-    Macro.escape(v)
+    escaped_v = Macro.escape(v)
+
+    quote do
+      require unquote(map_module_alias)
+      unquote(escaped_v)
+    end
   end
 
   @doc false
