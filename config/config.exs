@@ -10,11 +10,11 @@ use Mix.Config
 
 # You can configure your application as:
 #
-#     config :maps_as_functions, key: :value
+#     config :static_map, key: :value
 #
 # and access this configuration in your application as:
 #
-#     Application.get_env(:maps_as_functions, :key)
+#     Application.get_env(:static_map, :key)
 #
 # You can also configure a 3rd-party app:
 #

@@ -1,77 +1,97 @@
-# MapsAsFunctions
+# StaticMap
 
-A compile-time macro to build fast mapper and predicate functions from a map.
+A compile-time macro to build a module that behaves like a `map()`, but with "pre-baked" lookup functions.
+
+## Installation
+
+Add `static_map` to your list of dependencies in `mix.exs`:
+
+```elixir
+def deps do
+  [
+    {:static_map, "~> 0.1.0"}
+  ]
+end
+```
 
 ## Usage
 
-Define a map in your module using the macro `MapsAsFunctions.defmap/2`:
+First, require and import `StaticMap` into the current context:
 
 ```elixir
-use MapsAsFunctions
+use StaticMap
+```
 
-defmap :bar, [
+Then you can define a map module:
+
+```elixir
+defmap MyMap, [
   a: 1,
   b: 2
 ]
 ```
 
-`MapsAsFunctions.defmap/2` will define, given a map `:bar`, a module-attribute `@bar`, which you can use as normal in further function definitions:
+The first argument to `StaticMap.defmap/2` is the name of the module to define, as an Alias (calling `defmap Bar, ...` from within the body of a module `Foo` will thus define `Foo.Bar`.)
 
-```elixir
-def bar_values do
-  Map.values(@bar)
-end
-```
+You can pass any enumerable value as the second argument; it will be transformed into a `map()` using `Map.new/1`.
 
-`MapsAsFunctions.defmap/2` will also define, given a map `:bar`, the public functions `bar/0`, `bar/1`, and `bar?/1`:
+The module defined above (`MyMap`) will contain the following functions:
 
-```elixir
-iex> Foo.bar
-%{a: 1, b: 2}
+ * `MyMap.to_map/0`: returns the map
+ * `MyMap.to_list/0`: returns the map, passed through `Enum.to_list/1`
+ * `MyMap.get/1`: behaves as `Map.get/2`
+ * `MyMap.get/2`: behaves as `Map.get/3`
+ * `MyMap.fetch/1`: behaves as `Map.fetch/2`
+ * `MyMap.fetch!/1`: behaves as `Map.fetch!/2`
+ * `MyMap.has_key?/1`: behaves as `Map.has_key?/2`
+ * `MyMap.keys_set/0`: behaves as `Map.keys/1`, passed through `MapSet.new/1`
+ * `MyMap.values_set/0`: behaves as `Map.values/1`, passed through `MapSet.new/1`
 
-iex> Foo.bar(:a)
-1
+None of the above functions have any runtime logic; all return values are generated at compile time, and each potential input is built into its own function clause.
 
-iex> Foo.bar(:c)
-nil
+### Precompiled accessor macros
 
-iex> Foo.bar?(:a)
-true
+`StaticMap` contains macros that allow for *compile-time lookups* of values in your map module.
 
-iex> Foo.bar?(:c)
-false
-```
+* `StaticMap.get/2`
+* `StaticMap.fetch/2`
+* `StaticMap.fetch!/2`
+* `StaticMap.has_key!/2`
 
-There will also be a strict version of `bar/1`, called `bar!/1`:
+These macros act the same as their equivalent functions in `Map`, taking your map module in place of a `map()`.
 
-```elixir
-iex> Foo.bar!(:a)
-1
+When used in your code, these macros will—*if possible*—expand to their literal value, rather than to a function-call to your map module. See the Efficiency Guide below for more details.
 
-iex> Foo.bar!(:c)
-** (FunctionClauseError) no function clause matching in Foo.bar!/1
-```
+## Efficiency Guide
 
-...and a function `bar_keys/0` that returns the keys of the map as a `MapSet`:
+### Runtime clause-match overhead
 
-```elixir
-iex> Foo.bar_keys
-#MapSet<[:a, :b]>
-```
+Because map-key hashing has a constant overhead, the accessor functions defined on the map module (`MyMap.has_key?/1`, `MyMap.get/1,2`, `MyMap.fetch/1`, and `MyMap.fetch!/1`) will be faster than their counterparts in `Map`, but only up to a point. For large (>500 pair) maps, the `O(log n)` time-complexity of [the binary-search op used in clause-head unification](http://erlang.org/doc/efficiency_guide/functions.html) will outweigh the constant overhead of map-key hashing.
 
-None of the above functions have any runtime logic; they are all expanded into a series of function-clauses at compile time.
+For such high-cardinality maps, it is better to use rely on `StaticMap` only for its value functions (`MyMap.to_map/0`, `MyMap.to_list/0`, `MyMap.keys_set/0` and `MyMap.values_set/0`), and to do any accessing of the map by calling `MyMap.to_map/0` and passing the return value to regular `Map` functions.
 
-## Installation
+### When precompiled accessors will expand to literals
 
-Add `maps_as_functions` to your list of dependencies in `mix.exs`:
+The `StaticMap` precompiled-accessor macros first *test* the passed (quoted) expressions to determine whether they seem to contain only compile-time-available literals. Importantly, any use of a variable or module-attribute in the accessor macro-call will disqualify the macro-call from literal expansion, instead directly expanding to the runtime-call form.
 
-```elixir
-def deps do
-  [
-    {:maps_as_functions, "~> 0.1.0"}
-  ]
-end
-```
+If the passed expressions *are* eligible for compile-time evaluation, the macro will then attempt to evaluate the passed expressions in the calling context and use the results to perform the lookup. If, during this step, a `CompileError` is generated, the macro will fall back to runtime expansion.
 
-Docs can be found at [https://hexdocs.pm/maps_as_functions](https://hexdocs.pm/maps_as_functions).
+The accessor macro has no way of knowing whether a function call is "pure", and so will happily evaluate and reduce impure/nondeterministic functions to literals. Avoid using nondeterministic functions!
 
+To summarize, here are the guidelines for keys:
+
+* **Do**: use a literal key — `MyMap |> StaticMap.fetch!(:a)`
+* **Do**: use an alias key — `MyMap |> StaticMap.fetch!(Foo)`
+* **Do**: pass an expression through a pure+deterministic function that evaluates to a literal or alias key — `MyMap |> StaticMap.fetch!(List.first([:a, :b]))`
+* **Do not**: use a variable key — `MyMap |> StaticMap.fetch(a)`
+* **Do not**: use a module-attribute key — `MyMap |> StaticMap.fetch(@a)`
+* **Do not**: pass an expression through an impure/nondeterministic function — `MyMap |> StaticMap.fetch!(make_ref())`
+
+And here are the guidelines for map-modules:
+
+* **Do**: use a literal map-module — `:my_map |> StaticMap.fetch!(:a)`
+* **Do**: use an alias map-module — `MyMap |> StaticMap.fetch!(:a)`
+* **Do**: pass a literal expression through a pure+deterministic function that evaluates to a map-module literal or alias — `[MapA, MapB] |> List.first() |> StaticMap.fetch!(:a)`
+* **Do not**: use a module-attribute map-module — `@map_module |> StaticMap.fetch(:a)`
+* **Do not**: use a map-module alias that does not name a compiled-and-loaded module — `MapDefinedLaterInTheFile |> StaticMap.fetch!(:a)`
+* **Do not**: pass an expression through an impure/nondeterministic function — `[MapA, MapB] |> Enum.shuffle() |> List.first() |> StaticMap.fetch!(make_ref())`
