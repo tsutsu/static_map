@@ -60,7 +60,26 @@ None of the above functions have any runtime logic; all return values are genera
 
 These macros act the same as their equivalent functions in `Map`, taking your map module in place of a `map()`.
 
-When used in your code, these macros will—*if possible*—expand to their literal value, rather than to a function-call to your map module. See the Efficiency Guide below for more details.
+When used in your code, these macros will—*if possible*—expand to their literal value, rather than to a function-call to your map module. (See the Efficiency Guide below for more details.) These macro-accessor calls can effectively replace the usage of huge numbers of literals or scalar module attributes in your code:
+
+```elixir
+# Before
+@foo_one 1
+@foo_two 2
+def x, do: [
+  @foo_one,
+  @foo_two
+]
+
+# After
+defmap Foo, %{one: 1, two: 2}
+def x, do: [
+  StaticMap.fetch!(Foo, :one),
+  StaticMap.fetch!(Foo, :two)
+]
+```
+
+If literal expansion is not possible (e.g. if you are passing a variable key name to the macro-call), calls to the accessor macros will instead expand to calls to your map-module's accessor functions. Thus, there are no disadvantages (other than verbosity) to always preferring the macro-accessors on `StaticMap` over directly calling the accessor functions on the map-module.
 
 ## Efficiency Guide
 
