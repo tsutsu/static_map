@@ -101,10 +101,11 @@ To summarize, here are the guidelines for keys:
 
 * **Do**: use a literal key — `MyMap |> StaticMap.fetch!(:a)`
 * **Do**: use an alias key — `MyMap |> StaticMap.fetch!(Foo)`
-* **Do**: pass an expression through a pure+deterministic function that evaluates to a literal or alias key — `MyMap |> StaticMap.fetch!(List.first([:a, :b]))`
+* **Do**: pass a literal expression through a pure+deterministic function that evaluates to a literal or alias key — `MyMap |> StaticMap.fetch!(List.first([:a, :b]))`
 * **Do not**: use a variable key — `MyMap |> StaticMap.fetch(a)`
 * **Do not**: use a module-attribute key — `MyMap |> StaticMap.fetch(@a)`
 * **Do not**: pass an expression through an impure/nondeterministic function — `MyMap |> StaticMap.fetch!(make_ref())`
+* **Do not**: use a variable or module-attribute in an expression that evaluates to a key — `MyMap |> StaticMap.fetch(List.first([:a, x, @y]))`
 
 And here are the guidelines for map-modules:
 
@@ -114,3 +115,4 @@ And here are the guidelines for map-modules:
 * **Do not**: use a module-attribute map-module — `@map_module |> StaticMap.fetch(:a)`
 * **Do not**: use a map-module alias that does not name a compiled-and-loaded module — `MapDefinedLaterInTheFile |> StaticMap.fetch!(:a)`
 * **Do not**: pass an expression through an impure/nondeterministic function — `[MapA, MapB] |> Enum.shuffle() |> List.first() |> StaticMap.fetch!(make_ref())`
+* **Do not**: use a variable or module-attribute in an expression that evaluates to a map-module — `[MyMap, x, @y] |> List.first() |> StaticMap.fetch(:a)`
