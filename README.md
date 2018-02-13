@@ -56,7 +56,7 @@ None of the above functions have any runtime logic; all return values are genera
 * `StaticMap.get/2`
 * `StaticMap.fetch/2`
 * `StaticMap.fetch!/2`
-* `StaticMap.has_key!/2`
+* `StaticMap.has_key?/2`
 
 These macros act the same as their equivalent functions in `Map`, taking your map module in place of a `map()`.
 
@@ -87,7 +87,7 @@ If literal expansion is not possible (e.g. if you are passing a variable key nam
 
 Because map-key hashing has a constant overhead, the accessor functions defined on the map module (`MyMap.has_key?/1`, `MyMap.get/1,2`, `MyMap.fetch/1`, and `MyMap.fetch!/1`) will be faster than their counterparts in `Map`, but only up to a point. For large (>500 pair) maps, the `O(log n)` time-complexity of [the binary-search op used in clause-head unification](http://erlang.org/doc/efficiency_guide/functions.html) will outweigh the constant overhead of map-key hashing.
 
-For such high-cardinality maps, it is better to use rely on `StaticMap` only for its value functions (`MyMap.to_map/0`, `MyMap.to_list/0`, `MyMap.keys_set/0` and `MyMap.values_set/0`), and to do any accessing of the map by calling `MyMap.to_map/0` and passing the return value to regular `Map` functions.
+For such high-cardinality maps, it is better to rely on `StaticMap` only for its value functions (`MyMap.to_map/0`, `MyMap.to_list/0`, `MyMap.keys_set/0` and `MyMap.values_set/0`), and to do any accessing of the map by calling `MyMap.to_map/0` and passing the return value to regular `Map` functions.
 
 ### When precompiled accessors will expand to literals
 
@@ -114,5 +114,5 @@ And here are the guidelines for map-modules:
 * **Do**: pass a literal expression through a pure+deterministic function that evaluates to a map-module literal or alias — `[MapA, MapB] |> List.first() |> StaticMap.fetch!(:a)`
 * **Do not**: use a module-attribute map-module — `@map_module |> StaticMap.fetch(:a)`
 * **Do not**: use a map-module alias that does not name a compiled-and-loaded module — `MapDefinedLaterInTheFile |> StaticMap.fetch!(:a)`
-* **Do not**: pass an expression through an impure/nondeterministic function — `[MapA, MapB] |> Enum.shuffle() |> List.first() |> StaticMap.fetch!(make_ref())`
+* **Do not**: pass an expression through an impure/nondeterministic function — `[MapA, MapB] |> Enum.shuffle() |> List.first() |> StaticMap.fetch!(:a)`
 * **Do not**: use a variable or module-attribute in an expression that evaluates to a map-module — `[MyMap, x, @y] |> List.first() |> StaticMap.fetch(:a)`
